@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { addMovie, editMovie, deleteMovie } from '../store';
+import { addMovieAsync, editMovieAsync, deleteMovieAsync, fetchMovies } from '../store';
 import MovieCard from './MovieCard';
+
+import { useEffect } from 'react';
 
 const MovieList = ({ all }) => {
   const { categoryId } = useParams();
@@ -25,7 +27,7 @@ const MovieList = ({ all }) => {
 
   const handleAddMovie = () => {
     if (newMovieName.trim() === '' || !categoryId) return;
-    dispatch(addMovie({ name: newMovieName, categoryId: Number(categoryId) }));
+    dispatch(addMovieAsync({ name: newMovieName, categoryId: String(categoryId) }));
     setShowModal(false);
     setNewMovieName('');
     setEditMovieId(null);
@@ -33,7 +35,7 @@ const MovieList = ({ all }) => {
 
   const handleEditMovie = () => {
     if (newMovieName.trim() === '' || !editMovieId) return;
-    dispatch(editMovie({ movieId: editMovieId, name: newMovieName }));
+    dispatch(editMovieAsync({ id: editMovieId, data: { name: newMovieName } }));
     setShowModal(false);
     setNewMovieName('');
     setEditMovieId(null);
@@ -41,7 +43,7 @@ const MovieList = ({ all }) => {
 
   const handleDeleteMovie = () => {
     if (!deleteMovieId) return;
-    dispatch(deleteMovie({ movieId: deleteMovieId }));
+    dispatch(deleteMovieAsync(deleteMovieId));
     setShowDeleteModal(false);
     setDeleteMovieId(null);
   };
@@ -53,6 +55,10 @@ const MovieList = ({ all }) => {
   } else {
     breadcrumb = 'All Movies';
   }
+  useEffect(() => {
+    dispatch(fetchMovies());
+  }, [dispatch]);
+
   return (
     <div>
       {breadcrumb && (
@@ -75,7 +81,7 @@ const MovieList = ({ all }) => {
       </div>
       {filteredMovies.length === 0 && <p className="text-dark-muted">No movies found.</p>}
       {filteredMovies.map((movie, idx) => {
-        const reelsForMovie = reels.filter(r => r.movieId === movie.movieId);
+        const reelsForMovie = reels.filter(r => r.movieId === movie.id || r.movieId === movie.movieId);
         const totalCount = reelsForMovie.length;
         const uploadedCount = reelsForMovie.filter(r => r.status === 'uploaded').length;
         const createdCount = reelsForMovie.filter(r => r.status === 'created').length;

@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import CategoryCard from './CategoryCard';
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addCategory } from '../store';
+import { addCategoryAsync, editCategoryAsync, deleteCategoryAsync, fetchCategories } from '../store';
+
+import { useEffect } from 'react';
 
 const CategoryList = () => {
   const categories = useSelector(state => state.reelManager.categories);
@@ -14,12 +16,12 @@ const CategoryList = () => {
   const [deleteCategoryId, setDeleteCategoryId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const handleDeleteCategory = (cat) => {
-    setDeleteCategoryId(cat.categoryId);
+    setDeleteCategoryId(cat.id);
     setShowDeleteModal(true);
   };
 
   const confirmDeleteCategory = () => {
-    dispatch({ type: 'reelManager/deleteCategory', payload: { categoryId: deleteCategoryId } });
+    dispatch(deleteCategoryAsync(deleteCategoryId));
     setShowDeleteModal(false);
     setDeleteCategoryId(null);
   };
@@ -27,9 +29,9 @@ const CategoryList = () => {
   const handleAddCategory = () => {
     if (newCategoryName.trim() === '') return;
     if (editCategoryId) {
-      dispatch({ type: 'reelManager/editCategory', payload: { categoryId: editCategoryId, name: newCategoryName } });
+      dispatch(editCategoryAsync({ id: editCategoryId, data: { name: newCategoryName } }));
     } else {
-      dispatch(addCategory(newCategoryName));
+      dispatch(addCategoryAsync({ name: newCategoryName }));
     }
     setShowModal(false);
     setNewCategoryName('');
@@ -38,6 +40,10 @@ const CategoryList = () => {
 
   const movies = useSelector(state => state.reelManager.movies);
   const reels = useSelector(state => state.reelManager.reels);
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -51,7 +57,7 @@ const CategoryList = () => {
         </button>
       </div>
       {categories.map((cat, idx) => {
-        const moviesInCat = movies.filter(m => m.categoryId === cat.categoryId);
+        const moviesInCat = movies.filter(m => m.categoryId === cat.id || m.categoryId === cat.categoryId);
         const movieCount = moviesInCat.length;
         const reelsInCat = reels.filter(r => moviesInCat.some(m => m.movieId === r.movieId));
         const totalReels = reelsInCat.length;

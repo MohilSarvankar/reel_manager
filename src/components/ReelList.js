@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addReel, editReel, deleteReel } from '../store';
+import { addReelAsync, editReelAsync, deleteReelAsync, fetchReels } from '../store';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReelCard from './ReelCard';
+
+import { useEffect } from 'react';
 
 const ReelList = ({ all }) => {
   const { movieId } = useParams();
@@ -40,7 +42,7 @@ const ReelList = ({ all }) => {
 
   const handleAddReel = () => {
     if (!movieId || newNote.trim() === '') return;
-    dispatch(addReel({ movieId: Number(movieId), status: newStatus, note: newNote }));
+    dispatch(addReelAsync({ movieId: String(movieId), status: newStatus, note: newNote }));
     setShowModal(false);
     setNewNote('');
     setNewStatus('pending');
@@ -49,7 +51,7 @@ const ReelList = ({ all }) => {
 
   const handleEditReel = () => {
     if (!editReelId || newNote.trim() === '') return;
-    dispatch(editReel({ reelId: editReelId, status: newStatus, note: newNote }));
+    dispatch(editReelAsync({ id: editReelId, data: { status: newStatus, note: newNote } }));
     setShowModal(false);
     setNewNote('');
     setNewStatus('pending');
@@ -58,10 +60,14 @@ const ReelList = ({ all }) => {
 
   const handleDeleteReel = () => {
     if (!deleteReelId) return;
-    dispatch(deleteReel({ reelId: deleteReelId }));
+    dispatch(deleteReelAsync(deleteReelId));
     setShowDeleteModal(false);
     setDeleteReelId(null);
   };
+  useEffect(() => {
+    dispatch(fetchReels());
+  }, [dispatch]);
+
   return (
     <div>
       {!all && breadcrumb && (
@@ -82,7 +88,7 @@ const ReelList = ({ all }) => {
       </div>
       {filteredReels.length === 0 && <p className="text-dark-muted">No reels found.</p>}
       {filteredReels.map((reel, idx) => (
-        <div key={reel.reelId ?? idx} className="group">
+        <div key={reel.id ?? reel.reelId ?? idx} className="group">
           <div className="bg-dark-card border border-dark-border rounded-lg p-4 shadow-md mb-4 relative">
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
