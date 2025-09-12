@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 
 // CATEGORY CRUD
 export async function addCategoryFirestore(category) {
@@ -11,7 +11,11 @@ export async function addCategoryFirestore(category) {
 }
 
 export async function getCategoriesFirestore() {
-  const querySnapshot = await getDocs(collection(db, 'categories'));
+  const q = query(
+    collection(db, "categories"),
+    orderBy("name", "asc") // 🔑 sort by name ascending
+  );
+  const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
@@ -40,7 +44,11 @@ export async function addMovieFirestore(movie) {
 }
 
 export async function getMoviesFirestore() {
-  const querySnapshot = await getDocs(collection(db, 'movies'));
+  const q = query(
+    collection(db, "movies"),
+    orderBy("name", "asc") // 🔑 sort by title ascending
+  );
+  const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
